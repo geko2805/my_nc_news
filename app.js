@@ -3,7 +3,10 @@ const app = express();
 
 const getApi = require("./controllers/api.controller");
 const { getTopics } = require("./controllers/topics.controller");
-const { getArticleById } = require("./controllers/articles.controller");
+const {
+  getArticleById,
+  getAllArticles,
+} = require("./controllers/articles.controller");
 
 const {
   psqlErrorHandler,
@@ -16,6 +19,7 @@ app.use(express.json());
 app.get("/api", getApi);
 app.get("/api/topics", getTopics);
 app.get("/api/articles/:article_id", getArticleById);
+app.get("/api/articles", getAllArticles);
 
 app.all("/*", (req, res) => {
   res.status(404).send({ msg: "Route not found" });
