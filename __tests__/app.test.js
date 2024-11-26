@@ -114,3 +114,52 @@ describe("GET /api/articles", () => {
       });
   });
 });
+
+describe("GET /api/articles/:article_id/comments", () => {
+  test("200: Responds with an array of comments for given article_id with correct properties", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        comments.forEach((comment) => {
+          expect(typeof comment.comment_id).toBe("number");
+          expect(typeof comment.votes).toBe("number");
+          expect(typeof comment.created_at).toBe("string");
+          expect(typeof comment.author).toBe("string");
+          expect(typeof comment.body).toBe("string");
+          expect(typeof comment.article_id).toBe("number");
+        });
+
+        expect(comments).toBeSortedBy("created_at", {
+          descending: true,
+        });
+      });
+  });
+
+  test("200: Responds with status 200 and an error message if passed a valid artcile_id which exists but has no comments", () => {
+    return request(app)
+      .get("/api/articles/2/comments")
+      .expect(200)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("No comments for this article");
+      });
+  });
+
+  test("404: Responds with status 404 and an error message if passed a valid artcile_id which does not exist in the database", () => {
+    return request(app)
+      .get("/api/articles/3000/comments")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("ID not found");
+      });
+  });
+
+  test("400: Responds with status 400 and an error message if passed an invalid artcile_id", () => {
+    return request(app)
+      .get("/api/articles/not-an-artcile-id/comments")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Invalid article ID");
+      });
+  });
+});
