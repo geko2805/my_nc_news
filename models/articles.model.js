@@ -15,7 +15,6 @@ exports.readArticleById = (article_id) => {
     return rows[0];
   });
 };
-//count(comment_id) AS comment_count
 exports.readAllArticles = () => {
   return db
     .query(
