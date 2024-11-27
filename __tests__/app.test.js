@@ -43,7 +43,7 @@ describe("GET /api/topics", () => {
       .get("/api/topics")
       .expect(200)
       .then(({ body: { topics } }) => {
-        expect(topics.length).not.toBe(0);
+        expect(topics.length).toBeGreaterThan(1);
         topics.forEach((topic) => {
           expect(typeof topic.slug).toBe("string");
           expect(typeof topic.description).toBe("string");
@@ -94,7 +94,7 @@ describe("GET /api/articles", () => {
       .get("/api/articles")
       .expect(200)
       .then(({ body: { articles } }) => {
-        expect(articles.length).not.toBe(0);
+        expect(articles.length).toBeGreaterThan(1);
         articles.forEach((article) => {
           expect(article).not.toHaveProperty("body");
 
@@ -121,6 +121,8 @@ describe("GET /api/articles/:article_id/comments", () => {
       .get("/api/articles/1/comments")
       .expect(200)
       .then(({ body: { comments } }) => {
+        expect(comments.length).not.toBe(0);
+
         comments.forEach((comment) => {
           expect(typeof comment.comment_id).toBe("number");
           expect(typeof comment.votes).toBe("number");
@@ -221,6 +223,28 @@ describe("POST /api/articles/:article_id/comments", () => {
       .expect(404)
       .then(({ body: { msg } }) => {
         expect(msg).toBe("Resource not found");
+      });
+  });
+});
+
+describe("PATCH:/api/articles/:article_id", () => {
+  test("202: Responds with the updated article with ammended votes property", () => {
+    const testPatch = {
+      inc_votes: 5,
+    };
+    return request(app)
+      .patch("/api/articles/1")
+      .send(testPatch)
+      .expect(202)
+      .then(({ body: { article } }) => {
+        expect(typeof article.author).toBe("string");
+        expect(typeof article.title).toBe("string");
+        expect(article.article_id).toBe(1);
+        expect(typeof article.body).toBe("string");
+        expect(typeof article.topic).toBe("string");
+        expect(typeof article.created_at).toBe("string");
+        expect(article.votes).toBe(105);
+        expect(typeof article.article_img_url).toBe("string");
       });
   });
 });
