@@ -1,5 +1,9 @@
 const { readArticleById } = require("../models/articles.model");
-const { readCommentsByArticleId } = require("../models/comments.model");
+const {
+  readCommentsByArticleId,
+  insertComment,
+} = require("../models/comments.model");
+const { checkExists } = require("../utils/utils");
 
 exports.getCommentsByArticleId = (req, res, next) => {
   const { article_id } = req.params;
@@ -16,6 +20,18 @@ exports.getCommentsByArticleId = (req, res, next) => {
       } else {
         res.status(200).send({ comments });
       }
+    })
+    .catch(next);
+};
+
+exports.postComment = (req, res, next) => {
+  const { article_id } = req.params;
+  const { username, body } = req.body;
+  const promises = [insertComment(article_id, username, body)];
+
+  Promise.all(promises)
+    .then(([comment]) => {
+      res.status(201).send({ comment });
     })
     .catch(next);
 };
