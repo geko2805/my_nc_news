@@ -163,3 +163,64 @@ describe("GET /api/articles/:article_id/comments", () => {
       });
   });
 });
+
+describe("POST /api/articles/:article_id/comments", () => {
+  test("POST:201 inserts a new comment to the db and sends the new comment back to the client", () => {
+    const testComment = {
+      username: "rogersop",
+      body: "This is a test comment",
+    };
+    return request(app)
+      .post("/api/articles/3/comments")
+      .send(testComment)
+      .expect(201)
+      .then(({ body: { comment } }) => {
+        expect(comment.body).toBe("This is a test comment");
+        expect(comment.article_id).toBe(3);
+        expect(comment.author).toBe("rogersop");
+        expect(comment.votes).toBe(0);
+        expect(typeof comment.created_at).toBe("string");
+        expect(typeof comment.comment_id).toBe("number");
+      });
+  });
+  test("POST:400 responds with an appropriate status and error message when provided with a bad comment (no comment body)", () => {
+    const testComment = {
+      username: "rogersop",
+    };
+    return request(app)
+      .post("/api/articles/3/comments")
+      .send(testComment)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request - No Comment body");
+      });
+  });
+
+  test("POST:404 responds with an appropriate status and error message when provided with a username which doesn't exist", () => {
+    const testComment = {
+      username: "testUser",
+      body: "This is a test comment",
+    };
+    return request(app)
+      .post("/api/articles/3/comments")
+      .send(testComment)
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Resource not found");
+      });
+  });
+
+  test("POST:404: Responds with status 404 and an error message when passed an article_id which doesn't exist", () => {
+    const testComment = {
+      username: "rogersop",
+      body: "This is a test comment",
+    };
+    return request(app)
+      .post("/api/articles/3000/comments")
+      .send(testComment)
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Resource not found");
+      });
+  });
+});
