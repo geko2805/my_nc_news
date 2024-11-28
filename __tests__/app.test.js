@@ -198,6 +198,19 @@ describe("POST /api/articles/:article_id/comments", () => {
       });
   });
 
+  test("POST:400 responds with an appropriate status and error message when provided with a bad comment (no username)", () => {
+    const testComment = {
+      body: "This is a test comment",
+    };
+    return request(app)
+      .post("/api/articles/3/comments")
+      .send(testComment)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request - No Username");
+      });
+  });
+
   test("POST:404 responds with an appropriate status and error message when provided with a username which doesn't exist", () => {
     const testComment = {
       username: "testUser",

@@ -14,15 +14,19 @@ exports.readCommentsByArticleId = (article_id) => {
 };
 
 exports.insertComment = async (article_id, username, body) => {
-  await checkExists("users", "username", username);
-  await checkExists("articles", "article_id", article_id);
-
   if (!body) {
     return Promise.reject({
       status: 400,
       msg: "Bad request - No Comment body",
     });
+  } else if (!username) {
+    return Promise.reject({
+      status: 400,
+      msg: "Bad request - No Username",
+    });
   } else {
+    await checkExists("users", "username", username);
+    await checkExists("articles", "article_id", article_id);
     return db
       .query(
         `INSERT INTO comments (article_id, body, author)
