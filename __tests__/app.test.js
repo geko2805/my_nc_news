@@ -228,7 +228,7 @@ describe("POST /api/articles/:article_id/comments", () => {
 });
 
 describe("PATCH:/api/articles/:article_id", () => {
-  test("202: Responds with the updated article with ammended votes property", () => {
+  test("202: Responds with a status 202 and the updated article with ammended votes property", () => {
     const testPatch = {
       inc_votes: 5,
     };
@@ -245,6 +245,24 @@ describe("PATCH:/api/articles/:article_id", () => {
         expect(typeof article.created_at).toBe("string");
         expect(article.votes).toBe(105);
         expect(typeof article.article_img_url).toBe("string");
+      });
+  });
+
+  test("404: Responds with status 404 and an error message if passed a valid artcile_id which does not exist in the database", () => {
+    return request(app)
+      .patch("/api/articles/3000")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("ID not found");
+      });
+  });
+
+  test("400: Responds with status 400 and an error message if passed an invalid artcile_id", () => {
+    return request(app)
+      .patch("/api/articles/not-an-artcile-id")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Invalid article ID");
       });
   });
 });
