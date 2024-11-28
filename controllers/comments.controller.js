@@ -2,6 +2,7 @@ const { readArticleById } = require("../models/articles.model");
 const {
   readCommentsByArticleId,
   insertComment,
+  removeCommentById,
 } = require("../models/comments.model");
 const { checkExists } = require("../utils/utils");
 
@@ -32,6 +33,21 @@ exports.postComment = (req, res, next) => {
   Promise.all(promises)
     .then(([comment]) => {
       res.status(201).send({ comment });
+    })
+    .catch(next);
+};
+
+exports.deleteCommentById = (req, res, next) => {
+  const { comment_id } = req.params;
+  removeCommentById(comment_id)
+    .then((deletedComment) => {
+      if (deletedComment.rowCount === 0) {
+        return Promise.reject({
+          status: 404,
+          msg: "comment does not exist",
+        });
+      }
+      res.status(204).send();
     })
     .catch(next);
 };

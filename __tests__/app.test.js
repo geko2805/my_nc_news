@@ -74,7 +74,7 @@ describe("GET /api/articles/:article_id", () => {
       .get("/api/articles/not-an-artcile-id")
       .expect(400)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("Invalid article ID");
+        expect(msg).toBe("Bad request");
       });
   });
 
@@ -161,7 +161,7 @@ describe("GET /api/articles/:article_id/comments", () => {
       .get("/api/articles/not-an-artcile-id/comments")
       .expect(400)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("Invalid article ID");
+        expect(msg).toBe("Bad request");
       });
   });
 });
@@ -275,7 +275,30 @@ describe("PATCH:/api/articles/:article_id", () => {
       .patch("/api/articles/not-an-artcile-id")
       .expect(400)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("Invalid article ID");
+        expect(msg).toBe("Bad request");
+      });
+  });
+});
+
+describe("DELETE:/api/comments/:comment_id", () => {
+  test("204: Responds with a status 204 and no content if successfully deleted", () => {
+    return request(app).delete("/api/comments/1").expect(204);
+  });
+
+  test("DELETE:404 responds with an appropriate status and error message when given a non-existent id", () => {
+    return request(app)
+      .delete("/api/comments/999")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("comment does not exist");
+      });
+  });
+  test("DELETE:400 responds with an appropriate status and error message when given an invalid id", () => {
+    return request(app)
+      .delete("/api/comments/not-a-comment")
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe("Bad request");
       });
   });
 });
