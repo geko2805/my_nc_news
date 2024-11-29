@@ -2,12 +2,20 @@ const db = require("../db/connection");
 const { checkExists } = require("../utils/utils");
 
 exports.readArticleById = (article_id) => {
-  let queryString = "SELECT * FROM articles";
-  const queryVals = [];
-  if (article_id) {
-    queryString += ` WHERE article_id = $1;`;
-    queryVals.push(article_id);
-  }
+  let queryString = `SELECT articles.author, 
+      articles.title, 
+      articles.article_id, 
+      articles.created_at, 
+      articles.topic, 
+      articles.votes, 
+      articles.body,
+      articles.article_img_url, 
+      CAST(COUNT(comments.comment_id) AS INTEGER) AS comment_count
+        FROM articles
+        LEFT OUTER JOIN comments ON articles.article_id = comments.article_id
+        WHERE articles.article_id = $1
+        GROUP BY articles.author, articles.title, articles.article_id, articles.created_at, articles.topic, articles.votes, articles.article_img_url;`;
+  const queryVals = [article_id];
 
   return db.query(queryString, queryVals).then(({ rows }) => {
     if (rows.length === 0) {
