@@ -40,13 +40,7 @@ exports.postComment = (req, res, next) => {
 exports.deleteCommentById = (req, res, next) => {
   const { comment_id } = req.params;
   removeCommentById(comment_id)
-    .then((deletedComment) => {
-      if (deletedComment.rowCount === 0) {
-        return Promise.reject({
-          status: 404,
-          msg: "comment does not exist",
-        });
-      }
+    .then(() => {
       res.status(204).send();
     })
     .catch(next);
