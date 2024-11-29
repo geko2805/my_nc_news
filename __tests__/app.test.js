@@ -302,3 +302,19 @@ describe("DELETE:/api/comments/:comment_id", () => {
       });
   });
 });
+
+describe("GET:/api/users", () => {
+  test("200: Responds with an array of user objects with correct properties", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body: { users } }) => {
+        expect(users.length).toBeGreaterThan(1);
+        users.forEach((user) => {
+          expect(typeof user.username).toBe("string");
+          expect(typeof user.name).toBe("string");
+          expect(typeof user.avatar_url).toBe("string");
+        });
+      });
+  });
+});
