@@ -340,3 +340,31 @@ describe("GET /api/articles?sort_by=title&order=ASC", () => {
       });
   });
 });
+
+describe("GET /api/articles?topic=cats", () => {
+  test("200: Responds with an array of article objects filtered by given topic", () => {
+    return request(app)
+      .get("/api/articles?topic=cats")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles.length).toBeGreaterThan(0);
+
+        articles.forEach((article) => {
+          expect(article.topic).toBe("cats");
+        });
+
+        expect(articles).toBeSortedBy("created_at", {
+          descending: true,
+        });
+      });
+  });
+
+  test("404: Responds with a status 404 if given topic that does not exist", () => {
+    return request(app)
+      .get("/api/articles?topic=topic-does-not-exist")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Resource not found");
+      });
+  });
+});
