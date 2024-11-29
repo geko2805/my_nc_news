@@ -368,3 +368,14 @@ describe("GET /api/articles?topic=cats", () => {
       });
   });
 });
+
+describe("GET /api/articles/:article_id", () => {
+  test("200: Responds with an article object with added comment_count property", () => {
+    return request(app)
+      .get("/api/articles/1")
+      .expect(200)
+      .then(({ body: { article } }) => {
+        expect(typeof article.comment_count).toBe("number");
+      });
+  });
+});
