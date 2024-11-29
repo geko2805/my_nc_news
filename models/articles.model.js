@@ -1,4 +1,5 @@
 const db = require("../db/connection");
+const { checkExists } = require("../utils/utils");
 
 exports.readArticleById = (article_id) => {
   let queryString = "SELECT * FROM articles";
@@ -15,7 +16,11 @@ exports.readArticleById = (article_id) => {
     return rows[0];
   });
 };
-exports.readAllArticles = (sort_by = "created_at", order = "DESC") => {
+exports.readAllArticles = async (
+  sort_by = "created_at",
+  order = "DESC",
+  topic
+) => {
   const validSorts = [
     "created_at",
     "title",
@@ -40,9 +45,10 @@ exports.readAllArticles = (sort_by = "created_at", order = "DESC") => {
     });
   }
 
-  return db
-    .query(
-      `SELECT articles.author, 
+  if (!topic) {
+    return db
+      .query(
+        `SELECT articles.author, 
       articles.title, 
       articles.article_id, 
       articles.created_at, 
@@ -54,10 +60,34 @@ exports.readAllArticles = (sort_by = "created_at", order = "DESC") => {
         LEFT OUTER JOIN comments ON articles.article_id = comments.article_id 
         GROUP BY articles.author, articles.title, articles.article_id, articles.created_at, articles.topic, articles.votes, articles.article_img_url
         ORDER BY articles.${sort_by} ${upperCaseOrder};`
-    )
-    .then(({ rows }) => {
-      return rows;
-    });
+      )
+      .then(({ rows }) => {
+        return rows;
+      });
+  } else {
+    await checkExists("topics", "slug", topic);
+
+    return db
+      .query(
+        `SELECT articles.author, 
+    articles.title, 
+    articles.article_id, 
+    articles.created_at, 
+    articles.topic, 
+    articles.votes, 
+    articles.article_img_url, 
+    CAST(COUNT(comments.comment_id) AS INTEGER) AS comment_count
+      FROM articles 
+      LEFT OUTER JOIN comments ON articles.article_id = comments.article_id 
+      WHERE articles.topic = $1
+      GROUP BY articles.author, articles.title, articles.article_id, articles.created_at, articles.topic, articles.votes, articles.article_img_url
+      ORDER BY articles.${sort_by} ${upperCaseOrder};`,
+        [topic]
+      )
+      .then(({ rows }) => {
+        return rows;
+      });
+  }
 };
 
 exports.updateArticle = (article_id, inc_votes) => {
