@@ -318,3 +318,25 @@ describe("GET:/api/users", () => {
       });
   });
 });
+
+describe("GET /api/articles?sort_by=title&order=ASC", () => {
+  test("200: Responds with an array of article objects with correct properties ordered by given values", () => {
+    return request(app)
+      .get("/api/articles?sort_by=title&order=ASC")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles.length).toBeGreaterThan(1);
+        expect(articles).toBeSortedBy("title", {
+          descending: false,
+        });
+      });
+  });
+  test("400: Responds with a status 400 if given an invalid sort_by or order", () => {
+    return request(app)
+      .get("/api/articles?sort_by=invalid_sort_by&order=invalid_order")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+});

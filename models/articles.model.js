@@ -15,7 +15,31 @@ exports.readArticleById = (article_id) => {
     return rows[0];
   });
 };
-exports.readAllArticles = () => {
+exports.readAllArticles = (sort_by = "created_at", order = "DESC") => {
+  const validSorts = [
+    "created_at",
+    "title",
+    "topic",
+    "author",
+    "body",
+    "article_img_url",
+  ];
+  const validOrders = ["DESC", "ASC"];
+  const upperCaseOrder = order.toUpperCase();
+
+  if (!validSorts.includes(sort_by)) {
+    return Promise.reject({
+      status: 400,
+      msg: "Bad request",
+    });
+  }
+  if (!validOrders.includes(upperCaseOrder)) {
+    return Promise.reject({
+      status: 400,
+      msg: "Bad request",
+    });
+  }
+
   return db
     .query(
       `SELECT articles.author, 
@@ -29,7 +53,7 @@ exports.readAllArticles = () => {
         FROM articles 
         LEFT OUTER JOIN comments ON articles.article_id = comments.article_id 
         GROUP BY articles.author, articles.title, articles.article_id, articles.created_at, articles.topic, articles.votes, articles.article_img_url
-        ORDER BY articles.created_at DESC;`
+        ORDER BY articles.${sort_by} ${upperCaseOrder};`
     )
     .then(({ rows }) => {
       return rows;
