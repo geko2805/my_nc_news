@@ -138,12 +138,12 @@ describe("GET /api/articles/:article_id/comments", () => {
       });
   });
 
-  test("200: Responds with status 200 and an error message if passed a valid artcile_id which exists but has no comments", () => {
+  test("200: Responds with status 200 and an empty array if passed a valid artcile_id which exists but has no comments", () => {
     return request(app)
       .get("/api/articles/2/comments")
       .expect(200)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("No comments for this article");
+      .then(({ body: { comments } }) => {
+        expect(comments).toEqual([]);
       });
   });
 
