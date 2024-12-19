@@ -16,6 +16,11 @@ exports.getCommentsByArticleId = (req, res, next) => {
 
   Promise.all(promises)
     .then(([comments]) => {
+      // if (comments.length === 0) {
+      //   res.status(200).send({ msg: "No comments for this article" });
+      // } else {
+      //   res.status(200).send({ comments });
+      // }
       res.status(200).send({ comments });
     })
     .catch(next);
