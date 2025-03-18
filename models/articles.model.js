@@ -34,6 +34,7 @@ exports.readAllArticles = async (
     "title",
     "topic",
     "author",
+    "votes",
     "body",
     "article_img_url",
   ];
