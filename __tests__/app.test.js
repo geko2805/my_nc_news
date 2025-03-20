@@ -97,7 +97,6 @@ describe("GET /api/articles", () => {
         expect(articles.length).toBeGreaterThan(1);
         articles.forEach((article) => {
           expect(article).not.toHaveProperty("body");
-
           expect(typeof article.author).toBe("string");
           expect(typeof article.title).toBe("string");
           expect(typeof article.article_id).toBe("number");
