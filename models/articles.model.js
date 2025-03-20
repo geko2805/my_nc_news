@@ -54,7 +54,8 @@ exports.readAllArticles = async (
   }
 
   // Add fix for comment_count alias in ORDER_BY query
-  const orderByColumn = sort_by === "comment_count" ? "comment_count" : sort_by;
+  const orderByColumn =
+    sort_by === "comment_count" ? "comment_count" : `articles.${sort_by}`;
 
   if (!topic) {
     return db
@@ -70,7 +71,7 @@ exports.readAllArticles = async (
         FROM articles 
         LEFT OUTER JOIN comments ON articles.article_id = comments.article_id 
         GROUP BY articles.author, articles.title, articles.article_id, articles.created_at, articles.topic, articles.votes, articles.article_img_url
-        ORDER BY articles.${orderByColumn} ${upperCaseOrder};`
+        ORDER BY ${orderByColumn} ${upperCaseOrder};`
       )
       .then(({ rows }) => {
         return rows;
@@ -92,7 +93,7 @@ exports.readAllArticles = async (
       LEFT OUTER JOIN comments ON articles.article_id = comments.article_id 
       WHERE articles.topic = $1
       GROUP BY articles.author, articles.title, articles.article_id, articles.created_at, articles.topic, articles.votes, articles.article_img_url
-      ORDER BY articles.${orderByColumn} ${upperCaseOrder};`,
+      ORDER BY ${orderByColumn} ${upperCaseOrder};`,
         [topic]
       )
       .then(({ rows }) => {
