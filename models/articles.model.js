@@ -35,8 +35,7 @@ exports.readAllArticles = async (
     "topic",
     "author",
     "votes",
-    "body",
-    "article_img_url",
+    "comment_count",
   ];
   const validOrders = ["DESC", "ASC"];
   const upperCaseOrder = order.toUpperCase();
