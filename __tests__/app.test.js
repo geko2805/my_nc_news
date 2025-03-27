@@ -383,3 +383,26 @@ describe("GET /api/articles/:article_id", () => {
       });
   });
 });
+describe("GET /api/users/:username", () => {
+  test("200: Responds with a user object with username, avatar_url and name", () => {
+    return request(app)
+      .get("/api/users/butter_bridge")
+      .expect(200)
+      .then(({ body: { user } }) => {
+        expect(typeof user.name).toBe("string");
+        expect(typeof user.avatar_url).toBe("string");
+        expect(user.username).toBe("butter_bridge");
+      });
+  });
+});
+
+describe("GET /api/users/:username", () => {
+  test("404: Responds with a 404 and msg user not found", () => {
+    return request(app)
+      .get("/api/users/notauser")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("User not found");
+      });
+  });
+});
