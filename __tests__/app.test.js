@@ -406,3 +406,40 @@ describe("GET /api/users/:username", () => {
       });
   });
 });
+
+describe("PATCH:/api/comments/:comment_id", () => {
+  test("202: Responds with a status 202 and the updated comment with ammended votes property", () => {
+    const testPatch = {
+      inc_votes: 5,
+    };
+    return request(app)
+      .patch("/api/comments/1")
+      .send(testPatch)
+      .expect(202)
+      .then(({ body: { comment } }) => {
+        expect(comment.comment_id).toBe(1);
+        expect(typeof comment.body).toBe("string");
+        expect(typeof comment.author).toBe("string");
+        expect(typeof comment.created_at).toBe("string");
+        expect(comment.votes).toBe(21);
+      });
+  });
+
+  test("404: Responds with status 404 and an error message if passed a valid comment_id which does not exist in the database", () => {
+    return request(app)
+      .patch("/api/comments/3000")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("ID not found");
+      });
+  });
+
+  test("400: Responds with status 400 and an error message if passed an invalid comment_id", () => {
+    return request(app)
+      .patch("/api/comments/not-an-comment-id")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+});
