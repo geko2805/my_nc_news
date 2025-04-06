@@ -118,3 +118,40 @@ exports.updateArticle = (article_id, inc_votes) => {
       return rows[0];
     });
 };
+
+exports.insertArticle = async (author, title, body, topic, article_img_url) => {
+  console.log("hello from model");
+  if (!author) {
+    return Promise.reject({
+      status: 400,
+      msg: "Bad request - No author",
+    });
+  } else if (!title) {
+    return Promise.reject({
+      status: 400,
+      msg: "Bad request - No title",
+    });
+  } else if (!topic) {
+    return Promise.reject({
+      status: 400,
+      msg: "Bad request - No topic",
+    });
+  } else if (!body) {
+    return Promise.reject({
+      status: 400,
+      msg: "Bad request - No body",
+    });
+  } else {
+    await checkExists("users", "username", author);
+    await checkExists("topics", "slug", topic);
+    return db
+      .query(
+        `INSERT INTO articles (author, title, body, topic, article_img_url)
+    VALUES ($1, $2, $3, $4, $5) RETURNING *, 0 AS comment_count;`,
+        [author, title, body, topic, article_img_url]
+      )
+      .then(({ rows }) => {
+        return rows[0];
+      });
+  }
+};

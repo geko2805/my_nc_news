@@ -28,6 +28,30 @@
     }
   },
 
+  "POST /api/articles": {
+    "description": "adds an article",
+    "exampleRequest": {
+      "author": "grumpy19",
+      "title": "Test Article",
+      "body": "Content",
+      "topic": "coding",
+      "article_img_url": "test"
+    },
+    "exampleResponse": {
+      "article": {
+        "article_id": 45,
+        "title": "Test Article",
+        "topic": "coding",
+        "author": "grumpy19",
+        "body": "Content",
+        "created_at": "2025-04-06T12:55:13.187Z",
+        "votes": 0,
+        "article_img_url": "test",
+        "comment_count": 0
+      }
+    }
+  },
+
   "GET /api/articles/:article_id": {
     "description": "serves a single article object",
     "exampleResponse": {
