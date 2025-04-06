@@ -225,7 +225,7 @@ describe("POST /api/articles/:article_id/comments", () => {
       .send(testComment)
       .expect(404)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("Resource not found");
+        expect(msg).toBe("Resource not found - username: testUser");
       });
   });
 
@@ -239,7 +239,7 @@ describe("POST /api/articles/:article_id/comments", () => {
       .send(testComment)
       .expect(404)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("Resource not found");
+        expect(msg).toBe("Resource not found - article_id: 3000");
       });
   });
 });
@@ -368,7 +368,7 @@ describe("GET /api/articles?topic=cats", () => {
       .get("/api/articles?topic=topic-does-not-exist")
       .expect(404)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("Resource not found");
+        expect(msg).toBe("Resource not found - slug: topic-does-not-exist");
       });
   });
 });
@@ -440,6 +440,85 @@ describe("PATCH:/api/comments/:comment_id", () => {
       .expect(400)
       .then(({ body: { msg } }) => {
         expect(msg).toBe("Bad request");
+      });
+  });
+});
+
+describe("POST /api/articles", () => {
+  test("POST:201 inserts a new article to the db and sends the new article back to the client", () => {
+    const testArticle = {
+      author: "rogersop",
+      title: "new article",
+      body: "This is a test article",
+      topic: "cats",
+      article_img_url:
+        "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(testArticle)
+      .expect(201)
+      .then(({ body: { article } }) => {
+        expect(article.body).toBe("This is a test article");
+        expect(typeof article.article_id).toBe("number");
+        expect(article.author).toBe("rogersop");
+        expect(article.title).toBe("new article");
+        expect(article.topic).toBe("cats");
+        expect(article.votes).toBe(0);
+        expect(article.comment_count).toBe(0);
+        expect(typeof article.created_at).toBe("string");
+      });
+  });
+  test("POST:400 responds with an appropriate status and error message when provided with a bad article (no article body)", () => {
+    const testArticle = {
+      author: "rogersop",
+      title: "new article",
+      topic: "cats",
+      article_img_url:
+        "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(testArticle)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request - No body");
+      });
+  });
+
+  test("POST:404 responds with an appropriate status and error message when provided with a username which doesn't exist", () => {
+    const testArticle = {
+      author: "not_a_user",
+      title: "new article",
+      body: "This is a test article",
+      topic: "cats",
+      article_img_url:
+        "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(testArticle)
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Resource not found - username: not_a_user");
+      });
+  });
+
+  test("POST:404 responds with an appropriate status and error message when provided with a username which doesn't exist", () => {
+    const testArticle = {
+      author: "rogersop",
+      title: "new article",
+      body: "This is a test article",
+      topic: "not_a_topic",
+      article_img_url:
+        "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(testArticle)
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Resource not found - slug: not_a_topic");
       });
   });
 });

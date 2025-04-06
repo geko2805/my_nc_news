@@ -2,6 +2,7 @@ const {
   readAllArticles,
   readArticleById,
   updateArticle,
+  insertArticle,
 } = require("../models/articles.model");
 
 exports.getArticleById = (req, res, next) => {
@@ -29,6 +30,18 @@ exports.patchArticle = (req, res, next) => {
   updateArticle(article_id, inc_votes)
     .then((article) => {
       res.status(202).send({ article });
+    })
+    .catch(next);
+};
+
+exports.postArticle = (req, res, next) => {
+  console.log("hello from controller");
+  const { author, title, body, topic, article_img_url } = req.body;
+  const promises = [insertArticle(author, title, body, topic, article_img_url)];
+
+  Promise.all(promises)
+    .then(([article]) => {
+      res.status(201).send({ article });
     })
     .catch(next);
 };
