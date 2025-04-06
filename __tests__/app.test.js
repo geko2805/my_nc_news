@@ -464,6 +464,9 @@ describe("POST /api/articles", () => {
         expect(article.author).toBe("rogersop");
         expect(article.title).toBe("new article");
         expect(article.topic).toBe("cats");
+        expect(article.article_img_url).toBe(
+          "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
+        );
         expect(article.votes).toBe(0);
         expect(article.comment_count).toBe(0);
         expect(typeof article.created_at).toBe("string");
@@ -519,6 +522,32 @@ describe("POST /api/articles", () => {
       .expect(404)
       .then(({ body: { msg } }) => {
         expect(msg).toBe("Resource not found - slug: not_a_topic");
+      });
+  });
+
+  test("POST:201 when no article_img url is given it should default to hardcoded url, insert the new article to the db and sends the new article back to the client", () => {
+    const testArticle = {
+      author: "rogersop",
+      title: "new article",
+      body: "This is a test article",
+      topic: "cats",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(testArticle)
+      .expect(201)
+      .then(({ body: { article } }) => {
+        expect(article.body).toBe("This is a test article");
+        expect(typeof article.article_id).toBe("number");
+        expect(article.author).toBe("rogersop");
+        expect(article.title).toBe("new article");
+        expect(article.topic).toBe("cats");
+        expect(article.article_img_url).toBe(
+          "https://images.unsplash.com/photo-1586880234202-32a56790c681?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        );
+        expect(article.votes).toBe(0);
+        expect(article.comment_count).toBe(0);
+        expect(typeof article.created_at).toBe("string");
       });
   });
 });
