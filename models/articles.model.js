@@ -27,7 +27,9 @@ exports.readArticleById = (article_id) => {
 exports.readAllArticles = async (
   sort_by = "created_at",
   order = "DESC",
-  topic
+  topic = null,
+  page = 1,
+  limit = 12
 ) => {
   const validSorts = [
     "created_at",
@@ -40,6 +42,7 @@ exports.readAllArticles = async (
   const validOrders = ["DESC", "ASC"];
   const upperCaseOrder = order.toUpperCase();
 
+  // validation
   if (!validSorts.includes(sort_by)) {
     return Promise.reject({
       status: 400,
@@ -52,15 +55,20 @@ exports.readAllArticles = async (
       msg: "Bad request",
     });
   }
+  if (isNaN(page) || page < 1) {
+    return Promise.reject({ status: 400, msg: "Invalid page number" });
+  }
+  if (isNaN(limit) || limit < 1) {
+    return Promise.reject({ status: 400, msg: "Invalid limit" });
+  }
 
+  const offset = (page - 1) * limit;
   // Add fix for comment_count alias in ORDER_BY query
   const orderByColumn =
     sort_by === "comment_count" ? "comment_count" : `articles.${sort_by}`;
 
-  if (!topic) {
-    return db
-      .query(
-        `SELECT articles.author, 
+  let articlesQuery = `
+    SELECT articles.author, 
       articles.title, 
       articles.article_id, 
       articles.created_at, 
@@ -68,38 +76,38 @@ exports.readAllArticles = async (
       articles.votes, 
       articles.article_img_url, 
       CAST(COUNT(comments.comment_id) AS INTEGER) AS comment_count
-        FROM articles 
-        LEFT OUTER JOIN comments ON articles.article_id = comments.article_id 
-        GROUP BY articles.author, articles.title, articles.article_id, articles.created_at, articles.topic, articles.votes, articles.article_img_url
-        ORDER BY ${orderByColumn} ${upperCaseOrder};`
-      )
-      .then(({ rows }) => {
-        return rows;
-      });
-  } else {
-    await checkExists("topics", "slug", topic);
+    FROM articles 
+    LEFT OUTER JOIN comments ON articles.article_id = comments.article_id
+    WHERE articles.topic = $1 OR $1 IS NULL
+    GROUP BY articles.author, articles.title, articles.article_id, 
+      articles.created_at, articles.topic, articles.votes, articles.article_img_url
+    ORDER BY ${orderByColumn} ${upperCaseOrder}
+    LIMIT $2 OFFSET $3
+  `;
 
-    return db
-      .query(
-        `SELECT articles.author, 
-    articles.title, 
-    articles.article_id, 
-    articles.created_at, 
-    articles.topic, 
-    articles.votes, 
-    articles.article_img_url, 
-    CAST(COUNT(comments.comment_id) AS INTEGER) AS comment_count
-      FROM articles 
-      LEFT OUTER JOIN comments ON articles.article_id = comments.article_id 
-      WHERE articles.topic = $1
-      GROUP BY articles.author, articles.title, articles.article_id, articles.created_at, articles.topic, articles.votes, articles.article_img_url
-      ORDER BY ${orderByColumn} ${upperCaseOrder};`,
-        [topic]
-      )
-      .then(({ rows }) => {
-        return rows;
-      });
+  let countQuery = `
+    SELECT COUNT(DISTINCT articles.article_id) AS total_count
+    FROM articles
+    WHERE articles.topic = $1 OR $1 IS NULL
+  `;
+
+  const queryVals = [topic, limit, offset];
+
+  // Validate topic if provided
+  if (topic !== null) {
+    await checkExists("topics", "slug", topic);
   }
+
+  const articlesResult = db.query(articlesQuery, queryVals);
+  const countResult = db.query(countQuery, [topic]); // Count query only needs topic
+
+  return Promise.all([articlesResult, countResult]).then(
+    ([articlesData, countData]) => {
+      const articles = articlesData.rows;
+      const total_count = parseInt(countData.rows[0].total_count, 10);
+      return { articles, total_count };
+    }
+  );
 };
 
 exports.updateArticle = (article_id, inc_votes) => {
