@@ -551,3 +551,35 @@ describe("POST /api/articles", () => {
       });
   });
 });
+
+describe("GET /api/articles - Pagination", () => {
+  test("200: Responds with paginated array of articles and total_count", () => {
+    return request(app)
+      .get("/api/articles?page=2&limit=5")
+      .expect(200)
+      .then(({ body: { articles, total_count } }) => {
+        expect(Array.isArray(articles)).toBe(true);
+        expect(typeof total_count).toBe("number");
+
+        // verify pagination
+        expect(articles.length).toBeLessThanOrEqual(5);
+        expect(total_count).toBeGreaterThan(0);
+
+        articles.forEach((article) => {
+          expect(article).not.toHaveProperty("body");
+          expect(typeof article.author).toBe("string");
+          expect(typeof article.title).toBe("string");
+          expect(typeof article.article_id).toBe("number");
+          expect(typeof article.topic).toBe("string");
+          expect(typeof article.created_at).toBe("string");
+          expect(typeof article.votes).toBe("number");
+          expect(typeof article.article_img_url).toBe("string");
+          expect(typeof article.comment_count).toBe("number");
+        });
+
+        expect(articles).toBeSortedBy("created_at", {
+          descending: true,
+        });
+      });
+  });
+});
