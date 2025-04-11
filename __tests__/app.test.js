@@ -583,3 +583,170 @@ describe("GET /api/articles - Pagination", () => {
       });
   });
 });
+
+describe("GET /api/articles - new filters", () => {
+  //SELECTTED TOPICS
+  test("200: Responds with articles filtered by selected_topics array", () => {
+    return request(app)
+      .get("/api/articles?selected_topics=cats,paper")
+      .expect(200)
+      .then(({ body: { articles, total_count } }) => {
+        expect(Array.isArray(articles)).toBe(true);
+        expect(typeof total_count).toBe("number");
+        expect(total_count).toBeGreaterThan(0);
+        expect(articles.length).toBeLessThanOrEqual(total_count);
+
+        articles.forEach((article) => {
+          expect(["cats", "paper"]).toContain(article.topic);
+          expect(article).not.toHaveProperty("body");
+          expect(typeof article.author).toBe("string");
+          expect(typeof article.title).toBe("string");
+          expect(typeof article.article_id).toBe("number");
+          expect(typeof article.topic).toBe("string");
+          expect(typeof article.created_at).toBe("string");
+          expect(typeof article.votes).toBe("number");
+          expect(typeof article.article_img_url).toBe("string");
+          expect(typeof article.comment_count).toBe("number");
+        });
+
+        expect(articles).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("404: Responds with 404 if any topic in selected_topics does not exist", () => {
+    return request(app)
+      .get("/api/articles?selected_topics=cats,notatopic")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Resource not found - slug: notatopic");
+      });
+  });
+
+  //AUTHOR
+  test("200: Responds with articles filtered by author", () => {
+    return request(app)
+      .get("/api/articles?author=butter_bridge")
+      .expect(200)
+      .then(({ body: { articles, total_count } }) => {
+        expect(Array.isArray(articles)).toBe(true);
+        expect(typeof total_count).toBe("number");
+        expect(total_count).toBeGreaterThan(0);
+        expect(articles.length).toBeLessThanOrEqual(total_count);
+
+        articles.forEach((article) => {
+          expect(article.author).toBe("butter_bridge");
+          expect(article).not.toHaveProperty("body");
+          expect(typeof article.title).toBe("string");
+          expect(typeof article.article_id).toBe("number");
+          expect(typeof article.topic).toBe("string");
+          expect(typeof article.created_at).toBe("string");
+          expect(typeof article.votes).toBe("number");
+          expect(typeof article.article_img_url).toBe("string");
+          expect(typeof article.comment_count).toBe("number");
+        });
+
+        expect(articles).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+
+  test("404: Responds with 404 if author does not exist", () => {
+    return request(app)
+      .get("/api/articles?author=notauser")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Resource not found - author: notauser");
+      });
+  });
+
+  //NEGATIVE VOTES
+  test("200: Responds with only articles with positive votes when hide_negative is true", () => {
+    return request(app)
+      .get("/api/articles?hide_negative=true")
+      .expect(200)
+      .then(({ body: { articles, total_count } }) => {
+        expect(Array.isArray(articles)).toBe(true);
+        expect(typeof total_count).toBe("number");
+        expect(articles.length).toBeLessThanOrEqual(total_count);
+        expect(total_count).toBeGreaterThanOrEqual(0);
+
+        articles.forEach((article) => {
+          expect(article.votes).toBeGreaterThanOrEqual(0);
+          expect(article).not.toHaveProperty("body");
+          expect(typeof article.author).toBe("string");
+          expect(typeof article.title).toBe("string");
+          expect(typeof article.article_id).toBe("number");
+          expect(typeof article.topic).toBe("string");
+          expect(typeof article.created_at).toBe("string");
+          expect(typeof article.article_img_url).toBe("string");
+          expect(typeof article.comment_count).toBe("number");
+        });
+
+        expect(articles).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+
+  test("200: Responds with all articles when hide_negative is false", () => {
+    return request(app)
+      .get("/api/articles?hide_negative=false")
+      .expect(200)
+      .then(({ body: { articles, total_count } }) => {
+        expect(Array.isArray(articles)).toBe(true);
+        expect(typeof total_count).toBe("number");
+        expect(articles.length).toBeLessThanOrEqual(total_count);
+
+        articles.forEach((article) => {
+          expect(article).not.toHaveProperty("body");
+          expect(typeof article.author).toBe("string");
+          expect(typeof article.title).toBe("string");
+          expect(typeof article.article_id).toBe("number");
+          expect(typeof article.topic).toBe("string");
+          expect(typeof article.created_at).toBe("string");
+          expect(typeof article.votes).toBe("number");
+          expect(typeof article.article_img_url).toBe("string");
+          expect(typeof article.comment_count).toBe("number");
+        });
+
+        if (articles.length > 0) {
+          expect(articles).toBeSortedBy("created_at", { descending: true });
+        }
+      });
+  });
+
+  //DATE
+  test("200: Responds with articles from the last week when date_range is 'week'", () => {
+    return request(app)
+      .get("/api/articles?date_range=week")
+      .expect(200)
+      .then(({ body: { articles, total_count } }) => {
+        expect(Array.isArray(articles)).toBe(true);
+        expect(typeof total_count).toBe("number");
+        expect(articles.length).toBeLessThanOrEqual(total_count);
+
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+        articles.forEach((article) => {
+          const articleDate = new Date(article.created_at);
+          expect(articleDate).toBeGreaterThanOrEqual(oneWeekAgo);
+          expect(article).not.toHaveProperty("body");
+          expect(typeof article.author).toBe("string");
+          expect(typeof article.title).toBe("string");
+          expect(typeof article.article_id).toBe("number");
+          expect(typeof article.topic).toBe("string");
+          expect(typeof article.votes).toBe("number");
+          expect(typeof article.article_img_url).toBe("string");
+          expect(typeof article.comment_count).toBe("number");
+        });
+
+        expect(articles).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+
+  test("400: Responds with status 400 and an error message if passed an invalid date_range", () => {
+    return request(app)
+      .get("/api/articles/date_range=notadaterange")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+});

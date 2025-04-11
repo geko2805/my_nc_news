@@ -15,8 +15,29 @@ exports.getArticleById = (req, res, next) => {
 };
 
 exports.getAllArticles = (req, res, next) => {
-  const { sort_by, order, topic, page = 1, limit = 12 } = req.query;
-  readAllArticles(sort_by, order, topic, page, limit)
+  const {
+    sort_by = "created_at",
+    order = "DESC",
+    topic, //for topic pages
+    page = 1,
+    limit = 12,
+    hide_negative = "false", // filter to hide articles with negative votes
+    author, // filter by author
+    date_range, // filter by publish date - "all", "week", "month", "year"
+    selected_topics, // filter array of topics for multiple topics (e.g. ?selected_topics=coding,football)
+  } = req.query;
+
+  readAllArticles(
+    sort_by,
+    order,
+    topic,
+    page,
+    limit,
+    hide_negative === "true", // convert to boolean
+    author,
+    date_range,
+    selected_topics ? selected_topics.split(",") : null // convert csv string to array
+  )
     .then(({ articles, total_count }) => {
       res.status(200).send({ articles, total_count });
     })
