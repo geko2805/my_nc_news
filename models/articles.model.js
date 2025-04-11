@@ -29,7 +29,11 @@ exports.readAllArticles = async (
   order = "DESC",
   topic = null,
   page = 1,
-  limit = 12
+  limit = 12,
+  hide_negative = false,
+  author = null,
+  date_range = "all",
+  selected_topics = null
 ) => {
   const validSorts = [
     "created_at",
@@ -40,6 +44,7 @@ exports.readAllArticles = async (
     "comment_count",
   ];
   const validOrders = ["DESC", "ASC"];
+  const validDates = ["all", "week", "month", "year"];
   const upperCaseOrder = order.toUpperCase();
 
   // validation
@@ -55,11 +60,32 @@ exports.readAllArticles = async (
       msg: "Bad request",
     });
   }
+  if (!validDates.includes(date_range)) {
+    return Promise.reject({
+      status: 400,
+      msg: "Bad request",
+    });
+  }
   if (isNaN(page) || page < 1) {
     return Promise.reject({ status: 400, msg: "Invalid page number" });
   }
   if (isNaN(limit) || limit < 1) {
     return Promise.reject({ status: 400, msg: "Invalid limit" });
+  }
+
+  // check topic exists if provided for single topic pages
+  if (topic !== null) {
+    await checkExists("topics", "slug", topic);
+  }
+  //and check each topic exists for selected topics array
+  if (selected_topics !== null) {
+    for (const topic of selected_topics) {
+      await checkExists("topics", "slug", topic);
+    }
+  }
+  // check author exists
+  if (author !== null) {
+    await checkExists("articles", "author", author);
   }
 
   const offset = (page - 1) * limit;
@@ -78,28 +104,77 @@ exports.readAllArticles = async (
       CAST(COUNT(comments.comment_id) AS INTEGER) AS comment_count
     FROM articles 
     LEFT OUTER JOIN comments ON articles.article_id = comments.article_id
-    WHERE articles.topic = $1 OR $1 IS NULL
-    GROUP BY articles.author, articles.title, articles.article_id, 
-      articles.created_at, articles.topic, articles.votes, articles.article_img_url
-    ORDER BY ${orderByColumn} ${upperCaseOrder}
-    LIMIT $2 OFFSET $3
   `;
-
   let countQuery = `
     SELECT COUNT(DISTINCT articles.article_id) AS total_count
     FROM articles
-    WHERE articles.topic = $1 OR $1 IS NULL
   `;
+  let conditions = [];
+  let queryVals = [];
 
-  const queryVals = [topic, limit, offset];
-
-  // Validate topic if provided
-  if (topic !== null) {
-    await checkExists("topics", "slug", topic);
+  // topic filter for single topic from URL on topic pages
+  if (topic) {
+    conditions.push("articles.topic = $1");
+    queryVals.push(topic);
   }
 
+  // Selected topics filter (for multiple topics from filter drawer checkboxes)
+  if (selected_topics && selected_topics.length > 0) {
+    const placeholders = selected_topics
+      .map((_, i) => `$${queryVals.length + i + 1}`)
+      .join(",");
+    conditions.push(`articles.topic IN (${placeholders})`);
+    queryVals.push(...selected_topics);
+  }
+
+  // hide negative votes select filter
+  if (hide_negative) {
+    conditions.push(`articles.votes >= $${queryVals.length + 1}`);
+    queryVals.push(0);
+  }
+
+  // filter to shoow only articles by logged in user
+  if (author) {
+    conditions.push(`articles.author = $${queryVals.length + 1}`);
+    queryVals.push(author);
+  }
+
+  // date published filter
+  if (date_range !== "all") {
+    let dateCondition;
+    const now = new Date();
+    if (date_range === "week") {
+      dateCondition = `articles.created_at >= $${queryVals.length + 1}`;
+      queryVals.push(new Date(now - 7 * 24 * 60 * 60 * 1000));
+    } else if (date_range === "month") {
+      dateCondition = `articles.created_at >= $${queryVals.length + 1}`;
+      queryVals.push(new Date(now - 30 * 24 * 60 * 60 * 1000));
+    } else if (date_range === "year") {
+      dateCondition = `articles.created_at >= $${queryVals.length + 1}`;
+      queryVals.push(new Date(now - 365 * 24 * 60 * 60 * 1000));
+    }
+    conditions.push(dateCondition);
+  }
+
+  // append WHERE clause if conditions exist
+  if (conditions.length > 0) {
+    const whereClause = "WHERE " + conditions.join(" AND ");
+    articlesQuery += ` ${whereClause}`;
+    countQuery += ` ${whereClause}`;
+  }
+
+  // add end to articles query
+  articlesQuery += `
+  GROUP BY articles.author, articles.title, articles.article_id, 
+    articles.created_at, articles.topic, articles.votes, articles.article_img_url
+  ORDER BY ${orderByColumn} ${upperCaseOrder}
+  LIMIT $${queryVals.length + 1} OFFSET $${queryVals.length + 2}
+`;
+  queryVals.push(limit, offset);
+
+  // execute queries
   const articlesResult = db.query(articlesQuery, queryVals);
-  const countResult = db.query(countQuery, [topic]); // Count query only needs topic
+  const countResult = db.query(countQuery, queryVals.slice(0, -2)); // count query doesntt need limit and offset
 
   return Promise.all([articlesResult, countResult]).then(
     ([articlesData, countData]) => {
