@@ -750,3 +750,59 @@ describe("GET /api/articles - new filters", () => {
       });
   });
 });
+
+describe("POST /api/topics", () => {
+  test("POST:201 inserts a new topic to the db and sends the new topic back to the client", () => {
+    const testTopic = {
+      slug: "newTopic",
+      description: "This is a test topic description",
+    };
+    return request(app)
+      .post("/api/topics")
+      .send(testTopic)
+      .expect(201)
+      .then(({ body: { topic } }) => {
+        expect(topic.slug).toBe("newTopic");
+        expect(topic.description).toBe("This is a test topic description");
+      });
+  });
+  test("POST:400 responds with an appropriate status and error message when provided with a bad request (no slug)", () => {
+    const testTopic = {
+      description: "missing slug",
+    };
+    return request(app)
+      .post("/api/topics")
+      .send(testTopic)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request - No title");
+      });
+  });
+
+  test("POST:400 responds with an appropriate status and error message when provided with a bad request (no description)", () => {
+    const testTopic = {
+      slug: "newTopic",
+    };
+    return request(app)
+      .post("/api/topics")
+      .send(testTopic)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request - No description");
+      });
+  });
+
+  test("POST:409: Responds with status 409 and an error message when passed an slug which already exists", () => {
+    const testTopic = {
+      slug: "cats",
+      description: "This is a test topic description",
+    };
+    return request(app)
+      .post("/api/topics")
+      .send(testTopic)
+      .expect(409)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Resource already exists - slug: cats");
+      });
+  });
+});

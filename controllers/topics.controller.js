@@ -1,12 +1,19 @@
-const { readAllTopics } = require("../models/topics.model");
+const { readAllTopics, insertTopic } = require("../models/topics.model");
 
 exports.getTopics = (req, res, next) => {
-  //console.log("hello from the controller");
-
   readAllTopics()
     .then((topics) => {
-      //console.log(topics);
       res.status(200).send({ topics });
+    })
+    .catch(next);
+};
+
+exports.postTopic = (req, res, next) => {
+  const { slug, description } = req.body;
+
+  insertTopic(slug, description)
+    .then((topic) => {
+      res.status(201).send({ topic });
     })
     .catch(next);
 };
