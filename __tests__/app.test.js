@@ -806,3 +806,56 @@ describe("POST /api/topics", () => {
       });
   });
 });
+
+describe("DELETE /api/articles/:article_id", () => {
+  test("204: Responds with a status 204 and no content if successfully deleted", () => {
+    return request(app)
+      .delete("/api/articles/1")
+      .expect(204)
+      .then(({ body }) => {
+        expect(body).toEqual({}); // No content returned
+      });
+  });
+
+  test("404: Responds with an appropriate status and error message when given a non-existent id", () => {
+    return request(app)
+      .delete("/api/articles/999")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Article doesn't exist");
+      });
+  });
+
+  test("400: Responds with an appropriate status and error message when given an invalid id", () => {
+    return request(app)
+      .delete("/api/articles/not-an-id")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Bad request");
+      });
+  });
+
+  test("204: Successfully deletes article and its associated comments", () => {
+    return request(app)
+      .delete("/api/articles/1")
+      .expect(204)
+      .then(({ body }) => {
+        expect(body).toEqual({});
+        // Verify article and comments are deleted
+        return Promise.all([
+          request(app)
+            .get("/api/articles/1")
+            .expect(404)
+            .then(({ body }) => {
+              expect(body.msg).toBe("ID not found");
+            }),
+          request(app)
+            .get("/api/articles/1/comments")
+            .expect(404)
+            .then(({ body }) => {
+              expect(body.msg).toBe("ID not found");
+            }),
+        ]);
+      });
+  });
+});
