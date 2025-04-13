@@ -12,7 +12,7 @@ exports.insertTopic = async (slug, description) => {
   if (!slug) {
     return Promise.reject({
       status: 400,
-      msg: "Bad request - No title",
+      msg: "Bad request - No slug",
     });
   } else if (!description) {
     return Promise.reject({

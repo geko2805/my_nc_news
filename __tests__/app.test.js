@@ -775,7 +775,7 @@ describe("POST /api/topics", () => {
       .send(testTopic)
       .expect(400)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("Bad request - No title");
+        expect(msg).toBe("Bad request - No slug");
       });
   });
 
