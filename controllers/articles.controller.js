@@ -56,7 +56,6 @@ exports.patchArticle = (req, res, next) => {
 };
 
 exports.postArticle = (req, res, next) => {
-  console.log("hello from controller");
   const { author, title, body, topic, article_img_url } = req.body;
   const promises = [insertArticle(author, title, body, topic, article_img_url)];
 
