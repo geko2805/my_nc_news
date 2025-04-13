@@ -203,7 +203,6 @@ exports.updateArticle = (article_id, inc_votes) => {
 };
 
 exports.insertArticle = async (author, title, body, topic, article_img_url) => {
-  console.log("hello from model");
   if (!author) {
     return Promise.reject({
       status: 400,

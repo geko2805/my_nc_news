@@ -4,7 +4,7 @@ const cors = require("cors");
 app.use(cors());
 
 const getApi = require("./controllers/api.controller");
-const { getTopics } = require("./controllers/topics.controller");
+const { getTopics, postTopic } = require("./controllers/topics.controller");
 const {
   getArticleById,
   getAllArticles,
@@ -41,6 +41,7 @@ app.get("/api/users/:username", getUserByUsername);
 
 app.post("/api/articles/:article_id/comments", postComment);
 app.post("/api/articles", postArticle);
+app.post("/api/topics", postTopic);
 
 app.patch("/api/articles/:article_id", patchArticle);
 
