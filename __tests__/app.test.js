@@ -859,3 +859,29 @@ describe("DELETE /api/articles/:article_id", () => {
       });
   });
 });
+
+describe("PATCH:/api/users/:username", () => {
+  test("202: Responds with a status 202 and the updated usser with ammended avatar_url property", () => {
+    const testPatch = {
+      avatar_url: "new_url",
+    };
+    return request(app)
+      .patch("/api/users/rogersop")
+      .send(testPatch)
+      .expect(202)
+      .then(({ body: { user } }) => {
+        expect(user.username).toBe("rogersop");
+        expect(user.name).toBe("paul");
+        expect(user.avatar_url).toBe("new_url");
+      });
+  });
+
+  test("404: Responds with status 404 and an error message if passed a valid username which does not exist in the database", () => {
+    return request(app)
+      .patch("/api/users/notauser")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("User not found");
+      });
+  });
+});

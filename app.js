@@ -27,6 +27,7 @@ const {
 const {
   getUsers,
   getUserByUsername,
+  patchUser,
 } = require("./controllers/users.controller");
 
 app.use(express.json());
@@ -50,6 +51,7 @@ app.delete("/api/comments/:comment_id", deleteCommentById);
 app.delete("/api/articles/:article_id", deleteArticleById);
 
 app.patch("/api/comments/:comment_id", patchComment);
+app.patch("/api/users/:username", patchUser);
 
 app.all("/*", (req, res) => {
   res.status(404).send({ msg: "Route not found" });
