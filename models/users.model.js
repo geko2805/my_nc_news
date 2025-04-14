@@ -21,3 +21,20 @@ exports.readUserByUsername = (username) => {
     return rows[0];
   });
 };
+
+exports.updateUser = (username, avatar_url) => {
+  return db
+    .query(
+      `UPDATE users
+    SET avatar_url= $1
+    WHERE username =$2
+    RETURNING *;`,
+      [avatar_url, username]
+    )
+    .then(({ rows }) => {
+      if (rows.length === 0) {
+        return Promise.reject({ status: 404, msg: "User not found" });
+      }
+      return rows[0];
+    });
+};
