@@ -741,6 +741,28 @@ describe("GET /api/articles - new filters", () => {
       });
   });
 
+  //Count_only
+  test("200: Responds with only the count when count_only param is true", () => {
+    return request(app)
+      .get("/api/articles?count_only=true")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body).toEqual({ total_count: 13 });
+        expect(body).not.toHaveProperty("articles");
+        expect(Object.keys(body)).toEqual(["total_count"]);
+      });
+  });
+  test("200: Returns correct count with filters (e.g., topic=cats)", () => {
+    return request(app)
+      .get("/api/articles?count_only=true&topic=cats")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body).toEqual({ total_count: 1 });
+        expect(body).not.toHaveProperty("articles");
+        expect(Object.keys(body)).toEqual(["total_count"]);
+      });
+  });
+
   test("400: Responds with status 400 and an error message if passed an invalid date_range", () => {
     return request(app)
       .get("/api/articles/date_range=notadaterange")

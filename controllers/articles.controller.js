@@ -26,6 +26,7 @@ exports.getAllArticles = (req, res, next) => {
     author, // filter by author
     date_range, // filter by publish date - "all", "week", "month", "year"
     selected_topics, // filter array of topics for multiple topics (e.g. ?selected_topics=coding,football)
+    count_only = "false", //param used to return only the count not full results when = true
   } = req.query;
 
   readAllArticles(
@@ -37,10 +38,11 @@ exports.getAllArticles = (req, res, next) => {
     hide_negative === "true", // convert to boolean
     author,
     date_range,
-    selected_topics ? selected_topics.split(",") : null // convert csv string to array
+    selected_topics ? selected_topics.split(",") : null, // convert csv string to array
+    count_only === "true" // convert to boolean
   )
-    .then(({ articles, total_count }) => {
-      res.status(200).send({ articles, total_count });
+    .then((result) => {
+      res.status(200).send(result); // Either { articles, total_count } or { total_count }
     })
     .catch(next);
 };

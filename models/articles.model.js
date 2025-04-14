@@ -33,7 +33,8 @@ exports.readAllArticles = async (
   hide_negative = false,
   author = null,
   date_range = "all",
-  selected_topics = null
+  selected_topics = null,
+  count_only = false
 ) => {
   const validSorts = [
     "created_at",
@@ -161,6 +162,12 @@ exports.readAllArticles = async (
     const whereClause = "WHERE " + conditions.join(" AND ");
     articlesQuery += ` ${whereClause}`;
     countQuery += ` ${whereClause}`;
+  }
+
+  if (count_only) {
+    // Only execute count query and return count if count_only = true
+    const result = await db.query(countQuery, queryVals);
+    return { total_count: parseInt(result.rows[0].total_count, 10) };
   }
 
   // add end to articles query
