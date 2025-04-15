@@ -86,7 +86,7 @@ exports.readAllArticles = async (
   }
   // check author exists
   if (author !== null) {
-    await checkExists("articles", "author", author);
+    await checkExists("users", "username", author);
   }
 
   const offset = (page - 1) * limit;
