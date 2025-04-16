@@ -34,7 +34,8 @@ exports.readAllArticles = async (
   author = null,
   date_range = "all",
   selected_topics = null,
-  count_only = false
+  count_only = false,
+  search = null
 ) => {
   const validSorts = [
     "created_at",
@@ -103,6 +104,11 @@ exports.readAllArticles = async (
       articles.votes, 
       articles.article_img_url, 
       CAST(COUNT(comments.comment_id) AS INTEGER) AS comment_count
+      ${
+        search
+          ? ", ts_rank(articles.search_vector, plainto_tsquery('english', $1)) AS rank"
+          : ""
+      }
     FROM articles 
     LEFT OUTER JOIN comments ON articles.article_id = comments.article_id
   `;
@@ -113,9 +119,23 @@ exports.readAllArticles = async (
   let conditions = [];
   let queryVals = [];
 
+  // for user entered ssearch, usess plainto to remove white spaces etc
+  if (search) {
+    const searchQuery = search.trim();
+    if (searchQuery) {
+      conditions.push(
+        `articles.search_vector @@ plainto_tsquery('english', $${
+          queryVals.length + 1
+        })`
+      );
+      //uses queryval lengght +1 to generate $1, $2 etc
+      queryVals.push(searchQuery);
+    }
+  }
+
   // topic filter for single topic from URL on topic pages
   if (topic) {
-    conditions.push("articles.topic = $1");
+    conditions.push(`articles.topic = $${queryVals.length + 1}`);
     queryVals.push(topic);
   }
 
@@ -171,10 +191,12 @@ exports.readAllArticles = async (
   }
 
   // add end to articles query
+  //if search exists, use the ts_rank for order
   articlesQuery += `
   GROUP BY articles.author, articles.title, articles.article_id, 
     articles.created_at, articles.topic, articles.votes, articles.article_img_url
-  ORDER BY ${orderByColumn} ${upperCaseOrder}
+    ${search ? ", rank" : ""}
+  ORDER BY ${search ? "rank DESC, " : ""}${orderByColumn} ${upperCaseOrder}
   LIMIT $${queryVals.length + 1} OFFSET $${queryVals.length + 2}
 `;
   queryVals.push(limit, offset);

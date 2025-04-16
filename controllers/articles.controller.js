@@ -27,6 +27,7 @@ exports.getAllArticles = (req, res, next) => {
     date_range, // filter by publish date - "all", "week", "month", "year"
     selected_topics, // filter array of topics for multiple topics (e.g. ?selected_topics=coding,football)
     count_only = "false", //param used to return only the count not full results when = true
+    search, //user input to search against the ts_vector column in database
   } = req.query;
 
   readAllArticles(
@@ -39,7 +40,8 @@ exports.getAllArticles = (req, res, next) => {
     author,
     date_range,
     selected_topics ? selected_topics.split(",") : null, // convert csv string to array
-    count_only === "true" // convert to boolean
+    count_only === "true", // convert to boolean
+    search
   )
     .then((result) => {
       res.status(200).send(result); // Either { articles, total_count } or { total_count }
