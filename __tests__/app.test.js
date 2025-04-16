@@ -653,7 +653,7 @@ describe("GET /api/articles - new filters", () => {
       .get("/api/articles?author=notauser")
       .expect(404)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("Resource not found - author: notauser");
+        expect(msg).toBe("Resource not found - username: notauser");
       });
   });
 
