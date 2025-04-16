@@ -653,7 +653,7 @@ describe("GET /api/articles - new filters", () => {
       .get("/api/articles?author=notauser")
       .expect(404)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("Resource not found - author: notauser");
+        expect(msg).toBe("Resource not found - username: notauser");
       });
   });
 
@@ -904,6 +904,64 @@ describe("PATCH:/api/users/:username", () => {
       .expect(404)
       .then(({ body: { msg } }) => {
         expect(msg).toBe("User not found");
+      });
+  });
+});
+
+describe("GET /api/articles with search", () => {
+  test("200: Returns articles matching search and prioritizes rank, with exact matches first and title matches over body", () => {
+    return request(app)
+      .get("/api/articles?search=cat")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.total_count).toBe(3);
+        expect(body.articles[0].title).toBe("Am I a cat?"); // Exact word in match first
+        expect(body.articles[1].title).toBe(
+          "UNCOVERED: catspiracy to bring down democracy"
+        ); // Non exact title match "cats" second
+        expect(body.articles[2].title).toBe("A"); // Body match last
+      });
+  });
+
+  test("200: Combines with other filters", () => {
+    return request(app)
+      .get("/api/articles?search=cat&topic=mitch")
+      .expect(200)
+      .then(({ body }) => {
+        body.articles.forEach((article) => {
+          expect(article.topic).toBe("mitch");
+        });
+        expect(body.total_count).toBe(2);
+      });
+  });
+
+  test("200: Returns all matches with correct count for  coomplex searches", () => {
+    return request(app)
+      .get("/api/articles?search=cat+food")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.total_count).toBe(1);
+        expect(body.articles[0].title).toBe("A");
+      });
+  });
+
+  test("200: Returns empty array for non-matching search", () => {
+    return request(app)
+      .get("/api/articles?search=nonexistentquery")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.total_count).toBe(0);
+        expect(body.articles).toEqual([]);
+      });
+  });
+
+  test("200: Handles empty search query", () => {
+    return request(app)
+      .get("/api/articles?search=")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.total_count).toBe(13);
+        expect(body.articles).toHaveLength(12); //limit
       });
   });
 });
