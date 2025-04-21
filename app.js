@@ -28,30 +28,30 @@ const {
   getUsers,
   getUserByUsername,
   patchUser,
+  postUser,
 } = require("./controllers/users.controller");
 
 app.use(express.json());
 
 app.get("/api", getApi);
 app.get("/api/topics", getTopics);
-app.get("/api/articles/:article_id", getArticleById);
-app.get("/api/articles", getAllArticles);
-
-app.get("/api/articles/:article_id/comments", getCommentsByArticleId);
-app.get("/api/users", getUsers);
-app.get("/api/users/:username", getUserByUsername);
-
-app.post("/api/articles/:article_id/comments", postComment);
-app.post("/api/articles", postArticle);
 app.post("/api/topics", postTopic);
 
+app.get("/api/articles", getAllArticles);
+app.get("/api/articles/:article_id", getArticleById);
 app.patch("/api/articles/:article_id", patchArticle);
-
-app.delete("/api/comments/:comment_id", deleteCommentById);
 app.delete("/api/articles/:article_id", deleteArticleById);
+app.post("/api/articles", postArticle);
 
-app.patch("/api/comments/:comment_id", patchComment);
+app.get("/api/users", getUsers);
+app.get("/api/users/:username", getUserByUsername);
 app.patch("/api/users/:username", patchUser);
+app.post("/api/users", postUser);
+
+app.get("/api/articles/:article_id/comments", getCommentsByArticleId);
+app.post("/api/articles/:article_id/comments", postComment);
+app.delete("/api/comments/:comment_id", deleteCommentById);
+app.patch("/api/comments/:comment_id", patchComment);
 
 app.all("/*", (req, res) => {
   res.status(404).send({ msg: "Route not found" });

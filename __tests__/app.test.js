@@ -965,3 +965,66 @@ describe("GET /api/articles with search", () => {
       });
   });
 });
+
+describe("POST /api/usesrs", () => {
+  test("POST:201 inserts a new user to the db and sends the new user back to the client", () => {
+    const testUser = {
+      name: "Gethin Jones",
+      username: "geko2805",
+      avatar_url:
+        "https://vignette.wikia.nocookie.net/mrmen/images/7/78/Mr-Grumpy-3A.PNG/revision/latest?cb=20170707233013",
+    };
+    return request(app)
+      .post("/api/users")
+      .send(testUser)
+      .expect(201)
+      .then(({ body: { user } }) => {
+        expect(user.name).toBe("Gethin Jones");
+        expect(user.username).toBe("geko2805");
+        expect(user.avatar_url).toBe(
+          "https://vignette.wikia.nocookie.net/mrmen/images/7/78/Mr-Grumpy-3A.PNG/revision/latest?cb=20170707233013"
+        );
+      });
+  });
+  test("POST:400 responds with an appropriate status and error message when provided with a bad request (no username)", () => {
+    const testUser = {
+      name: "Gethin Jones",
+    };
+    return request(app)
+      .post("/api/users")
+      .send(testUser)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request - No username");
+      });
+  });
+
+  test("POST:400 responds with an appropriate status and error message when provided with a bad request (no name)", () => {
+    const testUser = {
+      username: "geko2805",
+    };
+    return request(app)
+      .post("/api/users")
+      .send(testUser)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request - No name");
+      });
+  });
+
+  test("POST:409: Responds with status 409 and an error message when passed a username which already exists", () => {
+    const testUser = {
+      name: "Gethin Jones",
+      username: "rogersop",
+      avatar_url:
+        "https://vignette.wikia.nocookie.net/mrmen/images/7/78/Mr-Grumpy-3A.PNG/revision/latest?cb=20170707233013",
+    };
+    return request(app)
+      .post("/api/users")
+      .send(testUser)
+      .expect(409)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Resource already exists - username: rogersop");
+      });
+  });
+});

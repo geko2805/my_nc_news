@@ -9,6 +9,19 @@
       "topics": [{ "slug": "football", "description": "Footie!" }]
     }
   },
+  "POST /api/topics": {
+    "description": "adds a topic and returns the added topic object",
+    "exampleRequest": {
+      "slug": "Technology",
+      "description": "Tech articles"
+    },
+    "exampleResponse": {
+      "topic": {
+        "slug": "Technology",
+        "description": "Tech articles"
+      }
+    }
+  },
   "GET /api/articles": {
     "description": "serves an array of all articles",
     "queries": ["topic", "sort_by", "order"],
@@ -27,31 +40,6 @@
       ]
     }
   },
-
-  "POST /api/articles": {
-    "description": "adds an article",
-    "exampleRequest": {
-      "author": "grumpy19",
-      "title": "Test Article",
-      "body": "Content",
-      "topic": "coding",
-      "article_img_url": "test"
-    },
-    "exampleResponse": {
-      "article": {
-        "article_id": 45,
-        "title": "Test Article",
-        "topic": "coding",
-        "author": "grumpy19",
-        "body": "Content",
-        "created_at": "2025-04-06T12:55:13.187Z",
-        "votes": 0,
-        "article_img_url": "test",
-        "comment_count": 0
-      }
-    }
-  },
-
   "GET /api/articles/:article_id": {
     "description": "serves a single article object",
     "exampleResponse": {
@@ -84,6 +72,91 @@
         "created_at": "2020-11-22T11:13:00.000Z",
         "votes": 14,
         "article_img_url": "https://images.pexels.com/photos/2403392/pexels-photo-2403392.jpeg?w=700&h=700"
+      }
+    }
+  },
+  "DELETE /api/articles/:article_id": {
+    "description": "deletes an article gy given id",
+    "exampleResponse": {
+      "status": 204
+    }
+  },
+
+  "POST /api/articles": {
+    "description": "adds an article and returns the added article object",
+    "exampleRequest": {
+      "author": "grumpy19",
+      "title": "Test Article",
+      "body": "Content",
+      "topic": "coding",
+      "article_img_url": "test"
+    },
+    "exampleResponse": {
+      "article": {
+        "article_id": 45,
+        "title": "Test Article",
+        "topic": "coding",
+        "author": "grumpy19",
+        "body": "Content",
+        "created_at": "2025-04-06T12:55:13.187Z",
+        "votes": 0,
+        "article_img_url": "test",
+        "comment_count": 0
+      }
+    }
+  },
+  "GET /api/users": {
+    "description": "serves an array of all users",
+    "exampleResponse": {
+      "users": [
+        {
+          "username": "butter_bridge",
+          "name": "jonny",
+          "avatar_url": "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg"
+        },
+        {
+          "username": "icellusedkars",
+          "name": "sam",
+          "avatar_url": "https://avatars2.githubusercontent.com/u/24604688?s=460&v=4"
+        }
+      ]
+    }
+  },
+  "GET /api/users/:username": {
+    "description": "serves a user object for given username",
+    "exampleResponse": {
+      "user": {
+        "username": "grumpy19",
+        "avatar_url": "https://vignette.wikia.nocookie.net/mrmen/images/7/78/Mr-Grumpy-3A.PNG/revision/latest?cb=20170707233013",
+        "name": "Paul Grump"
+      }
+    }
+  },
+  "PATCH /api/users/:username": {
+    "description": "updates avatar_url for a  given user",
+    "exampleRequest": {
+      "avatar_url": "new_url"
+    },
+    "exampleResponse": {
+      "user": {
+        "username": "grumpy19",
+        "name": "Paul Grump",
+        "avatar_url": "new_url"
+      }
+    }
+  },
+  "POST /api/users": {
+    "description": "adds a user and returns the added user object",
+    "exampleRequest": {
+      "name": "Gethin Jones",
+      "username": "geko2805",
+      "avatar_url": "test"
+    },
+    "exampleResponse": {
+      "user": {
+        "username": "geko2805",
+        "name": "Gethin Jones",
+        "avatar_url": "test"
       }
     }
   },
@@ -131,12 +204,11 @@
   },
   "DELETE /api/comments/:comment_id": {
     "description": "deletes a comment gy given id",
-
     "exampleResponse": {
       "status": 204
     }
   },
-  "PATCH /api/commentss/:comment_id": {
+  "PATCH /api/comments/:comment_id": {
     "description": "updates vote count for comments",
     "exampleRequest": {
       "inc_votes": 1
@@ -149,33 +221,6 @@
         "author": "tickle122",
         "votes": 3,
         "created_at": "2020-05-21T22:19:00.000Z"
-      }
-    }
-  },
-  "GET /api/users": {
-    "description": "serves an array of all users",
-    "exampleResponse": {
-      "users": [
-        {
-          "username": "butter_bridge",
-          "name": "jonny",
-          "avatar_url": "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg"
-        },
-        {
-          "username": "icellusedkars",
-          "name": "sam",
-          "avatar_url": "https://avatars2.githubusercontent.com/u/24604688?s=460&v=4"
-        }
-      ]
-    }
-  },
-  "GET /api/users/:username": {
-    "description": "serves a user object for given username",
-    "exampleResponse": {
-      "user": {
-        "username": "grumpy19",
-        "avatar_url": "https://vignette.wikia.nocookie.net/mrmen/images/7/78/Mr-Grumpy-3A.PNG/revision/latest?cb=20170707233013",
-        "name": "Paul Grump"
       }
     }
   }
